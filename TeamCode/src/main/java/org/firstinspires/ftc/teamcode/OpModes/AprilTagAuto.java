@@ -61,12 +61,12 @@ public class AprilTagAuto extends OpMode {
         // Choose a camera resolution. Not all cameras support all resolutions.
         builder.setCameraResolution(new Size(Constants.Camera.width, Constants.Camera.height));
 
-        builder.enableLiveView(Constants.cameraStreaming);
+        builder.enableLiveView(false);
         // Set the stream format; MJPEG uses less bandwidth than default YUY2.
-        builder.setStreamFormat(VisionPortal.StreamFormat.YUY2);
+//        builder.setStreamFormat(VisionPortal.StreamFormat.YUY2);
 
         // Choose whether LiveView stops if no processors are enabled.
-        builder.setAutoStopLiveView(!Constants.developerMode);
+        builder.setAutoStopLiveView(true);
 
         // Set and enable the processor.
         builder.addProcessor(robot.aprilTag);
@@ -88,32 +88,10 @@ public class AprilTagAuto extends OpMode {
         // Step through the list of detections and display info for each one.
         for (AprilTagDetection detection : currentDetections) {
             if (detection.metadata != null) {
-                if (detection.rawPose != null)   {
-                    double heading = robot.imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
-
-                    double robotX = detection.rawPose.x + Constants.Camera.offsetX * Math.cos(heading);
-                    double robotZ = detection.rawPose.z + Constants.Camera.offsetZ;
-                    double robotY = -detection.rawPose.y + Constants.Camera.offsetY * Math.sin(heading);
-                    Vector2d aprilTagPosition = Constants.aprilTagLocations.get(detection.id);
-
-                    telemetry.addLine("Distance Relative From April Tag");
-                    telemetry.addLine("X: " + robotY);
-                    telemetry.addLine("Y: " + robotY);
-                    telemetry.addLine("Z: " + robotZ);
-                    telemetry.addLine("April Tag Position On Field");
-                    telemetry.addLine("X: " + aprilTagPosition.x);
-                    telemetry.addLine("Y: " + aprilTagPosition.y);
-                    telemetry.addLine("Robot Position On Field");
-                    telemetry.addLine("X: " + robotX + aprilTagPosition.x + Constants.Camera.offsetX);
-                    telemetry.addLine("Y: " + robotY + aprilTagPosition.y + Constants.Camera.offsetY);
-
-                    robot.odometry.updateOdometry(robotX, robotY);
-                }
-
-                telemetry.addLine(String.format("\n==== (ID %d) %s", detection.id, detection.metadata.name));
-                telemetry.addLine(String.format("XYZ %6.1f %6.1f %6.1f  (inch)", detection.ftcPose.x, detection.ftcPose.y, detection.ftcPose.z));
-                telemetry.addLine(String.format("PRY %6.1f %6.1f %6.1f  (deg)", detection.ftcPose.pitch, detection.ftcPose.roll, detection.ftcPose.yaw));
-                telemetry.addLine(String.format("RBE %6.1f %6.1f %6.1f  (inch, deg, deg)", detection.ftcPose.range, detection.ftcPose.bearing, detection.ftcPose.elevation));
+                telemetry.addLine("X: " + detection.ftcPose.x);
+                telemetry.addLine("Y: " + detection.ftcPose.y);
+                telemetry.addLine("Z: " + detection.ftcPose.z);
+                telemetry.addLine();
             } else {
                 telemetry.addLine(String.format("\n==== (ID %d) Unknown", detection.id));
                 telemetry.addLine(String.format("Center %6.0f %6.0f   (pixels)", detection.center.x, detection.center.y));
