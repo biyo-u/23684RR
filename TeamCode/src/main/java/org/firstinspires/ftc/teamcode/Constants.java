@@ -38,10 +38,10 @@ public class Constants {
         public static double roll = 0;
         public static int width = 1920;
         public static int height = 1200;
-        public static double fx = 1475.214322;
-        public static double fy = 1488.200027;
-        public static double cx = 916.2279188;
-        public static double cy = 657.417681;
+        public static double fx = 1317.999212;
+        public static double fy = 1313.49178;
+        public static double cx = 967.5128547;
+        public static double cy = 664.7096383;
     }
 
 }
