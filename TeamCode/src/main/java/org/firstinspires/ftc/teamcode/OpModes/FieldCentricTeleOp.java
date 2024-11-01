@@ -32,7 +32,6 @@ public class FieldCentricTeleOp extends OpMode {
         }
 
         // Moves slide up when dpad up is pressed and down when dpad down is pressed
-        // TODO: Fix slide up speed problem
         if(gamepad2.left_stick_y > 0.1){
             robot.slide.SlideDown(1);
         } else if(gamepad2.left_stick_y < -0.1){
