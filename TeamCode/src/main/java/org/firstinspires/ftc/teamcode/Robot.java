@@ -70,6 +70,7 @@ public class Robot {
                     .setTagLibrary(AprilTagGameDatabase.getIntoTheDeepTagLibrary())
                     .setOutputUnits(DistanceUnit.INCH, AngleUnit.DEGREES)
                     .setLensIntrinsics(Constants.Camera.fx, Constants.Camera.fy, Constants.Camera.cx, Constants.Camera.cy)
+                    .setCameraPose(Constants.Camera.cameraPosition, Constants.Camera.cameraOrientation)
                     .build();
 
             // TODO: Learn about April Tag decimation

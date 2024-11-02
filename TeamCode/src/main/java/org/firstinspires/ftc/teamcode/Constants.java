@@ -3,6 +3,11 @@ package org.firstinspires.ftc.teamcode;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.roadrunner.Vector2d;
 
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.Position;
+import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -30,18 +35,17 @@ public class Constants {
     // TODO: Measure camera position relative to center of robot
     // TODO: Add code to cover for rotations
     public static class Camera {
-        public static double offsetX = 0;
-        public static double offsetY = 0;
-        public static double offsetZ = 0;
-        public static double yaw = 0;
-        public static double pitch = 0;
-        public static double roll = 0;
         public static int width = 1920;
         public static int height = 1200;
         public static double fx = 1317.999212;
         public static double fy = 1313.49178;
         public static double cx = 967.5128547;
         public static double cy = 664.7096383;
+
+        public static Position cameraPosition = new Position(DistanceUnit.INCH,
+                0, 0, 0, 0);
+        public static YawPitchRollAngles cameraOrientation = new YawPitchRollAngles(AngleUnit.DEGREES,
+                0, -90, 0, 0);
     }
 
 }
