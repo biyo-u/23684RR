@@ -226,9 +226,9 @@ public class ConceptAprilTagLocalization extends LinearOpMode {
         telemetry.addLine("\nkey:\nXYZ = X (Right), Y (Forward), Z (Up) dist.");
         telemetry.addLine("PRY = Pitch, Roll & Yaw (XYZ Rotation)");
 
-    }   // end method telemetryAprilTag()
+    }   //end method telemetryAprilTag()
 
 }   // end class
 
-// billy jean
+/// billy jean
 
