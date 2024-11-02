@@ -61,7 +61,7 @@ public class Robot {
         Servo lift_servo = hardwareMap.get(Servo.class, "lift_servo");
 
         if (setupAprilTags){
-            webcam = hardwareMap.get(WebcamName.class, "Webcam");
+            webcam = hardwareMap.get(WebcamName.class, "Webcam 1");
             aprilTag = new AprilTagProcessor.Builder()
                     .setDrawAxes(Constants.developerMode)
                     .setDrawCubeProjection(Constants.developerMode)
