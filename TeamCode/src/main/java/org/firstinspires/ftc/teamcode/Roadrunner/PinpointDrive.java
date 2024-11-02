@@ -1,46 +1,22 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.Roadrunner;
+
+
 
 import androidx.annotation.NonNull;
-
 import com.acmerobotics.dashboard.canvas.Canvas;
-import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.*;
-import com.acmerobotics.roadrunner.AngularVelConstraint;
-import com.acmerobotics.roadrunner.DualNum;
-import com.acmerobotics.roadrunner.HolonomicController;
-import com.acmerobotics.roadrunner.MecanumKinematics;
-import com.acmerobotics.roadrunner.MinVelConstraint;
-import com.acmerobotics.roadrunner.MotorFeedforward;
-import com.acmerobotics.roadrunner.Pose2d;
-import com.acmerobotics.roadrunner.Pose2dDual;
-import com.acmerobotics.roadrunner.ProfileAccelConstraint;
-import com.acmerobotics.roadrunner.Time;
-import com.acmerobotics.roadrunner.TimeTrajectory;
-import com.acmerobotics.roadrunner.TimeTurn;
-import com.acmerobotics.roadrunner.TrajectoryActionBuilder;
-import com.acmerobotics.roadrunner.TurnConstraints;
-import com.acmerobotics.roadrunner.Twist2dDual;
-import com.acmerobotics.roadrunner.VelConstraint;
-import com.acmerobotics.roadrunner.ftc.DownsampledWriter;
-import com.acmerobotics.roadrunner.ftc.Encoder;
-import com.acmerobotics.roadrunner.ftc.FlightRecorder;
-import com.acmerobotics.roadrunner.ftc.LazyImu;
-import com.acmerobotics.roadrunner.ftc.LynxFirmware;
-import com.acmerobotics.roadrunner.ftc.OverflowEncoder;
-import com.acmerobotics.roadrunner.ftc.PositionVelocityPair;
-import com.acmerobotics.roadrunner.ftc.RawEncoder;
+import com.acmerobotics.roadrunner.Actions;
+import com.acmerobotics.roadrunner.ftc.*;
+import com.acmerobotics.roadrunner.ftc.GoBildaPinpointDriver;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.hardware.IMU;
-import com.qualcomm.robotcore.hardware.VoltageSensor;
-
+import com.qualcomm.robotcore.hardware.*;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
+import org.firstinspires.ftc.teamcode.Drawing;
 import org.firstinspires.ftc.teamcode.messages.DriveCommandMessage;
 import org.firstinspires.ftc.teamcode.messages.MecanumCommandMessage;
 import org.firstinspires.ftc.teamcode.messages.MecanumLocalizerInputsMessage;
@@ -51,9 +27,48 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
-@Config
-public class MecanumDrive {
+/**
+ * Experimental extension of MecanumDrive that uses the Gobilda Pinpoint sensor for localization.
+ * <p>
+ * Released under the BSD 3-Clause Clear License by j5155 from 12087 Capital City Dynamics
+ * Portions of this code made and released under the MIT License by Gobilda (Base 10 Assets, LLC)
+ * Unless otherwise noted, comments are from Gobilda
+ */
+public class PinpointDrive {
+    // TODO: Move params to Constants file after testing
     public static class Params {
+        /*
+        Set the odometry pod positions relative to the point that the odometry computer tracks around.
+        The X pod offset refers to how far sideways from the tracking point the
+        X (forward) odometry pod is. Left of the center is a positive number,
+        right of the center is a negative number. The Y pod offset refers to how far forwards from
+        the tracking point the Y (strafe) odometry pod is: forward of the center is a positive number,
+        backwards is a negative number.
+         */
+        //These are tuned for 3110-0002-0001 Product Insight #1
+        // RR localizer note: These units are inches, presets are converted from mm (which is why they are inexact)
+        public double xOffset = -3.3071;
+        public double yOffset = -6.6142;
+
+        /*
+        Set the kind of pods used by your robot. If you're using goBILDA odometry pods, select either
+        the goBILDA_SWINGARM_POD or the goBILDA_4_BAR_POD.
+        If you're using another kind of odometry pod, input the number of ticks per millimeter for that pod.
+
+        RR LOCALIZER NOTE: this is ticks per MILLIMETER, NOT inches per tick.
+        This value should be more than one; the value for the Gobilda 4 Bar Pod is approximately 20.
+        To get this value from inPerTick, first convert the value to millimeters (multiply by 25.4)
+        and then take its inverse (one over the value)
+         */
+        public double encoderResolution = GoBildaPinpointDriverRR.goBILDA_4_BAR_POD;
+
+        /*
+        Set the direction that each of the two odometry pods count. The X (forward) pod should
+        increase when you move the robot forward. And the Y (strafe) pod should increase when
+        you move the robot to the left.
+         */
+        public GoBildaPinpointDriver.EncoderDirection xDirection = GoBildaPinpointDriver.EncoderDirection.FORWARD;
+        public GoBildaPinpointDriver.EncoderDirection yDirection = GoBildaPinpointDriver.EncoderDirection.FORWARD;
         // IMU orientation
         // TODO: fill in these values based on
         //   see https://ftc-docs.firstinspires.org/en/latest/programming_resources/imu/imu.html?highlight=imu#physical-hub-mounting
@@ -91,7 +106,7 @@ public class MecanumDrive {
         public double headingVelGain = 0.0; // shared with turn
     }
 
-    public static Params PARAMS = new Params();
+    public static PinpointDrive.Params PARAMS = new PinpointDrive.Params();
 
     public final MecanumKinematics kinematics = new MecanumKinematics(
             PARAMS.inPerTick * PARAMS.trackWidthTicks, PARAMS.inPerTick / PARAMS.lateralInPerTick);
@@ -121,6 +136,8 @@ public class MecanumDrive {
     private final DownsampledWriter targetPoseWriter = new DownsampledWriter("TARGET_POSE", 50_000_000);
     private final DownsampledWriter driveCommandWriter = new DownsampledWriter("DRIVE_COMMAND", 50_000_000);
     private final DownsampledWriter mecanumCommandWriter = new DownsampledWriter("MECANUM_COMMAND", 50_000_000);
+    public GoBildaPinpointDriverRR pinpoint;
+    private Pose2d lastPinpointPose = pose;
 
     public class DriveLocalizer implements Localizer {
         public final Encoder leftFront, leftBack, rightBack, rightFront;
@@ -131,10 +148,10 @@ public class MecanumDrive {
         private boolean initialized;
 
         public DriveLocalizer() {
-            leftFront = new OverflowEncoder(new RawEncoder(MecanumDrive.this.leftFront));
-            leftBack = new OverflowEncoder(new RawEncoder(MecanumDrive.this.leftBack));
-            rightBack = new OverflowEncoder(new RawEncoder(MecanumDrive.this.rightBack));
-            rightFront = new OverflowEncoder(new RawEncoder(MecanumDrive.this.rightFront));
+            leftFront = new OverflowEncoder(new RawEncoder(PinpointDrive.this.leftFront));
+            leftBack = new OverflowEncoder(new RawEncoder(PinpointDrive.this.leftBack));
+            rightBack = new OverflowEncoder(new RawEncoder(PinpointDrive.this.rightBack));
+            rightFront = new OverflowEncoder(new RawEncoder(PinpointDrive.this.rightFront));
 
             imu = lazyImu.get();
 
@@ -206,7 +223,7 @@ public class MecanumDrive {
         }
     }
 
-    public MecanumDrive(HardwareMap hardwareMap, Pose2d pose) {
+    public PinpointDrive(HardwareMap hardwareMap, Pose2d pose) {
         this.pose = pose;
 
         LynxFirmware.throwIfModulesAreOutdated(hardwareMap);
@@ -237,9 +254,37 @@ public class MecanumDrive {
 
         voltageSensor = hardwareMap.voltageSensor.iterator().next();
 
-        localizer = new DriveLocalizer();
+        localizer = new PinpointDrive.DriveLocalizer();
 
-        FlightRecorder.write("MECANUM_PARAMS", PARAMS);
+        FlightRecorder.write("PINPOINT_PARAMS", PARAMS);
+        pinpoint = hardwareMap.get(GoBildaPinpointDriverRR.class,"odo");
+
+        // RR localizer note: don't love this conversion (change driver?)
+        pinpoint.setOffsets(DistanceUnit.MM.fromInches(PARAMS.xOffset), DistanceUnit.MM.fromInches(PARAMS.yOffset));
+
+
+        pinpoint.setEncoderResolution(PARAMS.encoderResolution);
+
+        pinpoint.setEncoderDirections(PARAMS.xDirection, PARAMS.yDirection);
+
+        /*
+        Before running the robot, recalibrate the IMU. This needs to happen when the robot is stationary
+        The IMU will automatically calibrate when first powered on, but recalibrating before running
+        the robot is a good idea to ensure that the calibration is "good".
+        resetPosAndIMU will reset the position to 0,0,0 and also recalibrate the IMU.
+        This is recommended before you run your autonomous, as a bad initial calibration can cause
+        an incorrect starting value for x, y, and heading.
+         */
+        //pinpoint.recalibrateIMU();
+        pinpoint.resetPosAndIMU();
+        // wait for pinpoint to finish calibrating
+        try {
+            Thread.sleep(300);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+
+        pinpoint.setPosition(pose);
     }
 
     public void setDrivePowers(PoseVelocity2d powers) {
@@ -441,17 +486,31 @@ public class MecanumDrive {
     }
 
     public PoseVelocity2d updatePoseEstimate() {
-        Twist2dDual<Time> twist = localizer.update();
-        pose = pose.plus(twist.value());
+        if (lastPinpointPose != pose) {
+            // RR localizer note:
+            // Something else is modifying our pose (likely for relocalization),
+            // so we override otos pose with the new pose.
+            // This could potentially cause up to 1 loop worth of drift.
+            // I don't like this solution at all, but it preserves compatibility.
+            // The only alternative is to add getter and setters, but that breaks compat.
+            // Potential alternate solution: timestamp the pose set and backtrack it based on speed?
+            pinpoint.setPosition(pose);
+        }
+        pinpoint.update();
+        pose = pinpoint.getPositionRR();
+        lastPinpointPose = pose;
 
+        // RR standard
         poseHistory.add(pose);
         while (poseHistory.size() > 100) {
             poseHistory.removeFirst();
         }
 
-        estimatedPoseWriter.write(new PoseMessage(pose));
+        FlightRecorder.write("ESTIMATED_POSE", new PoseMessage(pose));
+        FlightRecorder.write("PINPOINT_RAW_POSE",new FTCPoseMessage(pinpoint.getPosition()));
+        FlightRecorder.write("PINPOINT_STATUS",pinpoint.getDeviceStatus());
 
-        return twist.velocity().value();
+        return pinpoint.getVelocityRR();
     }
 
     private void drawPoseHistory(Canvas c) {
@@ -473,8 +532,8 @@ public class MecanumDrive {
 
     public TrajectoryActionBuilder actionBuilder(Pose2d beginPose) {
         return new TrajectoryActionBuilder(
-                TurnAction::new,
-                FollowTrajectoryAction::new,
+                PinpointDrive.TurnAction::new,
+                PinpointDrive.FollowTrajectoryAction::new,
                 new TrajectoryBuilderParams(
                         1e-6,
                         new ProfileParams(
@@ -485,5 +544,19 @@ public class MecanumDrive {
                 defaultTurnConstraints,
                 defaultVelConstraint, defaultAccelConstraint
         );
+    }
+
+    public static final class FTCPoseMessage {
+        public long timestamp;
+        public double x;
+        public double y;
+        public double heading;
+
+        public FTCPoseMessage(Pose2D pose) {
+            this.timestamp = System.nanoTime();
+            this.x = pose.getX(DistanceUnit.INCH);
+            this.y = pose.getY(DistanceUnit.INCH);
+            this.heading = pose.getHeading(AngleUnit.RADIANS);
+        }
     }
 }
