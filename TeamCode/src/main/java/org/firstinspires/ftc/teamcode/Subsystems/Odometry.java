@@ -17,8 +17,10 @@ public class Odometry {
         this.imu = imu;
         // Sets Odometry offsets
         // TODO: Tune odometry offsets with our final robot
+        // TODO: Change odo.setOffsets to robot specification
+        // TODO: Confirm setEncoderDirections by running EncoderDirectionTest
         this.odo.setOffsets(-84.0, -168.0);
-        this.odo.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
+        this.odo.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_SWINGARM_POD);
         this.odo.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.FORWARD, GoBildaPinpointDriver.EncoderDirection.FORWARD);
         this.odo.resetPosAndIMU();
     }
