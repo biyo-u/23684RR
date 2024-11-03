@@ -102,6 +102,9 @@ public class Robot {
         slide_left.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         slide_right.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
+        // Stops and resets the encoder for the lift angle slide
+//        liftanglemotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
         // Retrieve the IMU from the hardware map
         imu = hardwareMap.get(IMU.class, "imu");
         // Adjust the orientation parameters to match your robot
