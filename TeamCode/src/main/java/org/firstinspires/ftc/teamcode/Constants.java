@@ -43,7 +43,7 @@ public class Constants {
         public static double cy = 664.7096383;
 
         public static Position cameraPosition = new Position(DistanceUnit.INCH,
-                -7.31250, 7.03125, 7.50000, 0);
+                7.31250, 7.03125, 7.50000, 0);
         public static YawPitchRollAngles cameraOrientation = new YawPitchRollAngles(AngleUnit.DEGREES,
                 0, -90, 0, 0);
     }
