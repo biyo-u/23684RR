@@ -38,7 +38,10 @@ public class Robot {
 
     public LiftServo liftServo;
 
+    public LiftAngleMotor liftAngleMotor;
+
     // TODO: Only initialize required hardware depending on use case (IN PROGRESS)
+    // TODO: Configure lift angle motor onto Driver Hub config file, then uncomment the corresponding lines (line 65, 99)
     public Robot(HardwareMap hardwareMap, Telemetry ftcTelemetry, boolean setupAprilTags) {
         // Uses CAI Telemetry to integrate with FTC Dashboard
 //        telemetry = new CAITelemetry(ftcTelemetry);
@@ -59,6 +62,7 @@ public class Robot {
         Servo hang_right = hardwareMap.get(Servo.class, "first_hang_right");
 
         Servo lift_servo = hardwareMap.get(Servo.class, "lift_servo");
+//        DcMotor liftAngleMotor = hardwareMap.get(DcMotor.class, "lift_angle_motor");
 
         if (setupAprilTags){
             webcam = hardwareMap.get(WebcamName.class, "Webcam 1");
@@ -91,6 +95,8 @@ public class Robot {
         this.firstHang = new FirstHang(hang_left, hang_right);
 
         this.liftServo = new LiftServo(lift_servo);
+
+//        this.liftAngleMotor = new LiftAngleMotor(liftAngleMotor);
 
         // Sets slide zero power mode to break so slide doesn't fall by itself
         slide_left.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);

@@ -39,13 +39,16 @@ public class FieldCentricTeleOp extends OpMode {
         } else {
             robot.slide.SlideStop();
         }
-
+        // TODO: Configure lift angle motor onto Driver Hub config file, then uncomment the corresponding lines (line 45, 48, 51)
         if(gamepad2.x){
             robot.liftServo.Move(0);
+//            robot.liftAngleMotor.LiftAngleFoward(1);
         } else if(gamepad2.y){
             robot.liftServo.Move(0.3);
+//            robot.liftAngleMotor.LiftAngleBackward(1);
         } else if(gamepad2.b){
             robot.liftServo.Move(1);
+//            robot.liftAngleMotor.LiftAngleStop();
         }
 
         if(gamepad2.dpad_left){
